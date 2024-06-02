@@ -38,18 +38,23 @@
 
 #include "utils.h"
 
+#define NUM_ELEMENTS (10)
+
 
 /**
- * @brief This tests the simplest multiple tag async use of the library
+ * @brief This tests the simplest multiple tag synchronous use of the library
  * 
- * This function shows an example of how to read multiple tags with the network operations taking place
- * in the background asynchronously.   All memory and other resourcess are managed by the library.   Only the basic functions are used:
+ * This function shows an example of how to read multiple tags.  The results are placed into the 
+ * local array of data.
+ * 
+ * Functions used:
  * 
  * plc_comm_id_t plc_comm_conn_open(plc_comm_plc_type_t plc_type, const char *address, plc_comm_config_t *config, int32_t timeout_ms);
- * plc_comm_id_t plc_comm_conn_do_request(plc_comm_id_t conn_id, const char *tag_name, int32_t num_elements, plc_comm_request_type_t op, plc_comm_config_t *config, int32_t timeout_ms);
- * int32_t plc_comm_result_batch_get_attr_int(plc_comm_id_t result_batch_id, int32_t result_indx, plc_comm_result_batch_attr_t attr, int32_t default_val);
- * void *plc_comm_result_batch_get_attr_ptr(plc_comm_id_t result_batch_id, int32_t result_indx, plc_comm_result_batch_attr_t attr, void *default_val);
- * int32_t plc_comm_conn_dispose(plc_comm_id_t conn_id);
+ * plc_comm_id_t plc_comm_request_batch_init(plc_comm_id_t conn_id, int32_t num_requests, plc_comm_id_t config_id); 
+ * int32_t plc_comm_request_init(plc_comm_id_t request_batch_id, int32_t request_indx, const char *tag_name, int32_t num_elements, plc_comm_request_op_t op, void *translated_data, int32_t translated_data_size, plc_comm_id_t config_id);
+ * plc_comm_id_t plc_comm_conn_do_request_batch(plc_comm_id_t conn_id, plc_comm_id_t request_batch_id, plc_comm_id_t config_id, int32_t timeout_ms);
+ * int32_t plc_comm_result_batch_get_status(plc_comm_id_t result_batch_id);
+ * int32_t plc_comm_conn_dispose(plc_comm_id_t conn_id, int32_t timeout_ms);
  * 
  * @return int - status
  */
@@ -61,84 +66,63 @@ int main(void)
     int32_t rc = PLC_COMM_STATUS_OK;
     int64_t end_time = (int64_t)0;
     int32_t num_results = 0;
-    int32_t *tag_elements = NULL;
-    int32_t num_elements = 0;
+    int32_t tag_elements[NUM_ELEMENTS] = {0};
 
     do {
         conn_id = plc_comm_conn_open(PLC_COMM_PLC_TYPE_COMPACTLOGIX, "10.1.2.3", PLC_COMM_CONFIG_NULL_ID, 5000);
         if(conn_id < 0) break;
 
         /* build a batch of requests. */
-        request_batch_id = plc_comm_request_batch_init(conn_id, 10, PLC_COMM_CONFIG_NULL_ID);
+        request_batch_id = plc_comm_request_batch_init(conn_id, NUM_ELEMENTS, PLC_COMM_CONFIG_NULL_ID);
         if(request_batch_id < 0) break;
     
-        /* fill in the requests */
-        rc = plc_comm_request_init(request_batch_id, 0, "MyDINTTag[0]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
+        /* map each tag to local data. */
+        rc = plc_comm_request_init(request_batch_id, 0, "MyDINTTag[0]", 1, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[0], sizeof(tag_elements[0]), PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 1, "MyDINTTag[1]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 1, "MyDINTTag[1]", 1, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[1], sizeof(tag_elements[1]), PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 2, "MyDINTTag[2]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 2, "MyDINTTag[2]", 1, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[2], sizeof(tag_elements[2]), PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 3, "MyDINTTag[3]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 3, "MyDINTTag[3]", 1, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[3], sizeof(tag_elements[3]), PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 4, "MyDINTTag[4]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 4, "MyDINTTag[4]", 1, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[4], sizeof(tag_elements[4]), PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 5, "MyDINTTag[5]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 5, "MyDINTTag[5]", 1, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[5], sizeof(tag_elements[5]), PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 6, "MyDINTTag[6]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 6, "MyDINTTag[6]", 1, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[6], sizeof(tag_elements[6]), PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 7, "MyDINTTag[7]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 7, "MyDINTTag[7]", 1, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[7], sizeof(tag_elements[7]), PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 8, "MyDINTTag[8]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 8, "MyDINTTag[8]", 1, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[8], sizeof(tag_elements[8]), PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 9, "MyDINTTag[9]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 9, "MyDINTTag[9]", 1, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[9], sizeof(tag_elements[9]), PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
         /* a timeout of zero tell the library to queue up the batch of requests and then return. */
-        result_batch_id = plc_comm_conn_do_request_batch(conn_id, request_batch_id, PLC_COMM_CONFIG_NULL_ID, 0);
+        result_batch_id = plc_comm_conn_do_request_batch(conn_id, request_batch_id, PLC_COMM_CONFIG_NULL_ID, 5000);
         if(result_batch_id < 0) break;
 
-        /*
-         * The request is being processed in the background.   Network operations usually take multiple milliseconds,
-         * so we have a lot of time to do computation or other work if we want.
-         * 
-         * A real application would queue up many operations and then do other work while waiting for them
-         * all to complete.
-         */
-
-        /* Loop while we have time left and the request is still processing. */
-        end_time = util_time_ms() + (int64_t)5000; 
-        while(((rc = plc_comm_result_batch_get_status(result_batch_id)) == PLC_COMM_STATUS_PENDING) && (util_time_ms() < end_time)) {
-            /* wait for a bit.  This is simulating doing work. */
-            util_sleep_ms(20);
-        }
-
-        if(rc == PLC_COMM_STATUS_PENDING) {
-            /* we timed out. */
-            rc = PLC_COMM_STATUS_TIMEOUT;
-        }
+        rc = plc_comm_result_batch_get_status(result_batch_id);
 
         /* check the status, all good or partially good is OK */
         if((rc != PLC_COMM_STATUS_OK) || (rc == PLC_COMM_STATUS_PARTIAL)) break;
 
-        /* get the number of results */
-        num_results = plc_comm_result_batch_get_attr_int(request_batch_id, PLC_COMM_ATTR_RESULT_BATCH_RESULT_COUNT, -1);
-
-        for(int result_indx=0; result_indx < num_results; result_indx++) {
-            num_elements = plc_comm_result_get_attr_int(result_batch_id, result_indx, PLC_COMM_ATTR_RESULT_TRANSLATED_ELEMENT_COUNT, -1);
-            tag_elements = (int32_t *)plc_comm_result_get_attr_ptr(result_batch_id, result_indx, PLC_COMM_ATTR_RESULT_TRANSLATED_ELEMENT_DATA, NULL);
-
-            for(int i=0; i < num_elements; i++) {
-                printf("data[%d] = %d (%08x)\n", i, tag_elements[i], tag_elements[i]);
+        for(int result_indx=0; result_indx < NUM_ELEMENTS; result_indx++) {
+            /* if the individual result is good then use the data */
+            rc = plc_comm_result_get_status(result_batch_id, result_indx);
+            if(rc == PLC_COMM_STATUS_OK) {
+                printf("data[%d] = %"PRId32" (%08"PRIx32")\n", result_indx, tag_elements[result_indx], tag_elements[result_indx]);
+            } else {
+                printf("data[%d] was not retrived correctly with error %"PRId32"!\n", result_indx, rc);
             }
         }
     } while(0);

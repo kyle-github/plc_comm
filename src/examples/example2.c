@@ -38,6 +38,7 @@
 
 #include "utils.h"
 
+#define NUM_ELEMENTS (10)
 
 /**
  * @brief This tests the simplest async use of the library
@@ -47,9 +48,8 @@
  * 
  * plc_comm_id_t plc_comm_conn_open(plc_comm_plc_type_t plc_type, const char *address, plc_comm_config_t *config, int32_t timeout_ms);
  * plc_comm_id_t plc_comm_conn_do_request(plc_comm_id_t conn_id, const char *tag_name, int32_t num_elements, plc_comm_request_type_t op, plc_comm_config_t *config, int32_t timeout_ms);
- * int32_t plc_comm_result_batch_get_attr_int(plc_comm_id_t result_batch_id, int32_t result_indx, plc_comm_result_batch_attr_t attr, int32_t default_val);
- * void *plc_comm_result_batch_get_attr_ptr(plc_comm_id_t result_batch_id, int32_t result_indx, plc_comm_result_batch_attr_t attr, void *default_val);
- * int32_t plc_comm_conn_dispose(plc_comm_id_t conn_id);
+ * int32_t plc_comm_result_batch_get_status(plc_comm_id_t result_batch_id);
+ * int32_t plc_comm_conn_dispose(plc_comm_id_t conn_id, int32_t timeout_ms);
  * 
  * @return int - status
  */
@@ -59,15 +59,14 @@ int main(void)
     plc_comm_id_t result_batch_id = PLC_COMM_RESULT_BATCH_NULL_ID;
     int32_t rc = PLC_COMM_STATUS_OK;
     int64_t end_time = (int64_t)0;
-    int32_t *tag_elements = NULL;
-    int32_t num_elements = 0;
+    int32_t tag_elements[NUM_ELEMENTS] = {0};
 
     do {
         conn_id = plc_comm_conn_open(PLC_COMM_PLC_TYPE_COMPACTLOGIX, "10.1.2.3", PLC_COMM_CONFIG_NULL_ID, 5000);
         if(conn_id < 0) break;
 
         /* a timeout of zero tell the library to queue up the request and then return. */
-        result_batch_id = plc_comm_conn_do_request(conn_id, "MyDINTTag", 10, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID, 0);
+        result_batch_id = plc_comm_conn_do_request(conn_id, "MyDINTTag", NUM_ELEMENTS, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[0], (int32_t)(uint32_t)sizeof(tag_elements), PLC_COMM_CONFIG_NULL_ID, 0);
         if(result_batch_id < 0) break;
 
         /*
@@ -93,11 +92,8 @@ int main(void)
         /* check the status */
         if(rc != PLC_COMM_STATUS_OK) break;
 
-        num_elements = plc_comm_result_get_attr_int(result_batch_id, 0, PLC_COMM_ATTR_RESULT_TRANSLATED_ELEMENT_COUNT, -1);
-        tag_elements = (int32_t *)plc_comm_result_get_attr_ptr(result_batch_id, 0, PLC_COMM_ATTR_RESULT_TRANSLATED_ELEMENT_DATA, NULL);
-
-        for(int i=0; i < num_elements; i++) {
-            printf("data[%d] = %d (%08x)\n", i, tag_elements[i], tag_elements[i]);
+        for(int i=0; i < NUM_ELEMENTS; i++) {
+            printf("data[%d] = %"PRId32" (%08"PRIx32")\n", i, tag_elements[i], tag_elements[i]);
         }
     } while(0);
 

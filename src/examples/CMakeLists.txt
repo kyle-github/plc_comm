@@ -5,8 +5,9 @@ project(plc_comm_examples VERSION 0.1.0 LANGUAGES C)
 include_directories(../lib/include)
 
 # example executables
-add_executable(simple_single_tag_sync simple_single_tag_sync.c)
-add_executable(simple_single_tag_async simple_single_tag_async.c)
-add_executable(simple_multiple_tag_async simple_multiple_tag_async.c)
-add_executable(simple_single_tag_config simple_single_tag_config.c)
+add_executable(example1 example1.c)
+add_executable(example2 example2.c)
+add_executable(example3 example3.c)
+add_executable(example4 example4.c)
+add_executable(example5 example5.c)
 

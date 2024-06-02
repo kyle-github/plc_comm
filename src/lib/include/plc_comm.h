@@ -225,7 +225,7 @@ typedef enum {
 } plc_comm_request_op_t;
 
 LIB_EXTERN plc_comm_id_t plc_comm_conn_open(plc_comm_plc_type_t plc_type, const char *address, plc_comm_id_t config, int32_t timeout_ms);
-LIB_EXTERN plc_comm_id_t plc_comm_conn_do_request(plc_comm_id_t conn_id, const char *tag_name, int32_t num_elements, plc_comm_request_op_t op, plc_comm_id_t config, int32_t timeout_ms);
+LIB_EXTERN plc_comm_id_t plc_comm_conn_do_request(plc_comm_id_t conn_id, const char *tag_name, int32_t num_elements, plc_comm_request_op_t op, void *translated_data, int32_t translated_data_size, plc_comm_id_t config, int32_t timeout_ms);
 LIB_EXTERN plc_comm_id_t plc_comm_conn_do_request_batch(plc_comm_id_t conn_id, plc_comm_id_t request_batch_id, plc_comm_id_t config_id, int32_t timeout_ms);
 LIB_EXTERN int32_t plc_comm_conn_dispose(plc_comm_id_t conn_id, int32_t timeout_ms);
 
@@ -238,7 +238,7 @@ typedef enum {
 
 LIB_EXTERN plc_comm_id_t plc_comm_request_batch_init(plc_comm_id_t conn_id, int32_t num_requests, plc_comm_id_t config_id);
 LIB_EXTERN int32_t plc_comm_request_batch_get_status(plc_comm_id_t request_batch_id);
-LIB_EXTERN int32_t plc_comm_request_init(plc_comm_id_t request_batch_id, int32_t request_indx, const char *tag_name, int32_t num_elements, plc_comm_request_op_t op, plc_comm_id_t config_id);
+LIB_EXTERN int32_t plc_comm_request_init(plc_comm_id_t request_batch_id, int32_t request_indx, const char *tag_name, int32_t num_elements, plc_comm_request_op_t op, void *translated_data, int32_t translated_data_size, plc_comm_id_t config_id);
 LIB_EXTERN plc_comm_id_t plc_comm_request_config_init(plc_comm_id_t conn_id, void *app_config_data, int32_t app_config_data_size);
 
 /* result and result batch definitions */
@@ -253,9 +253,13 @@ LIB_EXTERN int32_t plc_comm_result_batch_get_status(plc_comm_id_t result_batch_i
 typedef enum {
     PLC_COMM_ATTR_RESULT_TRANSLATED_ELEMENT_COUNT = ((1 << PLC_COMM_ATTR_ID_SHIFT) | PLC_COMM_ATTR_TYPE_INT | PLC_COMM_ATTR_ACCESS_READ),
     PLC_COMM_ATTR_RESULT_TRANSLATED_ELEMENT_DATA = ((2 << PLC_COMM_ATTR_ID_SHIFT) | PLC_COMM_ATTR_TYPE_PTR | PLC_COMM_ATTR_ACCESS_READ),
-    PLC_COMM_ATTR_RESULT_TRANSLATED_DATA_BUF = ((3 << PLC_COMM_ATTR_ID_SHIFT) | PLC_COMM_ATTR_TYPE_BUF | PLC_COMM_ATTR_ACCESS_READ | PLC_COMM_ATTR_ACCESS_WRITE),
+    PLC_COMM_ATTR_RESULT_TRANSLATED_DATA_BUF = ((3 << PLC_COMM_ATTR_ID_SHIFT) | PLC_COMM_ATTR_TYPE_BUF | PLC_COMM_ATTR_ACCESS_WRITE),
+    PLC_COMM_ATTR_RESULT_RAW_ELEMENT_COUNT = ((4 << PLC_COMM_ATTR_ID_SHIFT) | PLC_COMM_ATTR_TYPE_INT | PLC_COMM_ATTR_ACCESS_READ),
+    PLC_COMM_ATTR_RESULT_RAW_ELEMENT_DATA = ((5 << PLC_COMM_ATTR_ID_SHIFT) | PLC_COMM_ATTR_TYPE_PTR | PLC_COMM_ATTR_ACCESS_READ),
+    PLC_COMM_ATTR_RESULT_RAW_DATA_BUF = ((6 << PLC_COMM_ATTR_ID_SHIFT) | PLC_COMM_ATTR_TYPE_BUF | PLC_COMM_ATTR_ACCESS_WRITE),
 } plc_comm_result_attr_t;
 
+LIB_EXTERN int32_t plc_comm_result_get_status(plc_comm_id_t result_batch_id, int32_t result_indx);
 LIB_EXTERN int32_t plc_comm_result_get_attr_int(plc_comm_id_t result_batch_id, int32_t result_indx, plc_comm_result_attr_t attr, int32_t default_val);
 LIB_EXTERN void *plc_comm_result_get_attr_ptr(plc_comm_id_t result_batch_id, int32_t result_indx, plc_comm_result_attr_t attr, void *default_val);
 

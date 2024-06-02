@@ -41,18 +41,22 @@
 /**
  * @brief This tests the simplest use of the library with configuration.
  * 
- * This function shows an example of how to read a single tag into an existing data structure.   
+ * This function shows an example of how to read the off-the-network, raw, data from the PLC
+ * into a local buffer that the application controls.
+ *    
  * All other memory and other resourcess are managed by the library.   Only the basic functions are used:
  * 
  * plc_comm_id_t plc_comm_conn_open(plc_comm_plc_type_t plc_type, const char *address, plc_comm_config_t *config, int32_t timeout_ms);
  * plc_comm_id_t plc_comm_conn_request_config_init(plc_comm_id_t conn_id, void *app_config_data, int32_t app_config_data_size);
  * plc_comm_id_t plc_comm_conn_do_request(plc_comm_id_t conn_id, const char *tag_name, int32_t num_elements, plc_comm_request_type_t op, plc_comm_config_t *config, int32_t timeout_ms);
- * int32_t plc_comm_result_batch_get_attr_int(plc_comm_id_t result_batch_id, int32_t result_indx, plc_comm_result_batch_attr_t attr, int32_t default_val);
- * void *plc_comm_result_batch_get_attr_ptr(plc_comm_id_t result_batch_id, int32_t result_indx, plc_comm_result_batch_attr_t attr, void *default_val);
- * int32_t plc_comm_conn_dispose(plc_comm_id_t conn_id);
+ * int32_t plc_comm_conn_dispose(plc_comm_id_t conn_id, int32_t timeout_ms);
  * 
  * @return int - status
  */
+
+/* Rockwell's definition of a 32-bit integer. */
+typedef int32_t DINT;
+
 int main(void)
 {
     plc_comm_id_t conn_id = PLC_COMM_CONFIG_NULL_ID;
@@ -60,7 +64,7 @@ int main(void)
     plc_comm_id_t result_batch_id = PLC_COMM_RESULT_BATCH_NULL_ID;
     int32_t rc = PLC_COMM_STATUS_OK;
     int32_t tag_elements[NUM_ELEMENTS]  = {0};
-    int32_t num_elements = 0;
+    uint8_t raw_elements[NUM_ELEMENTS * sizeof(DINT)] = {0};
 
     do {
         conn_id = plc_comm_conn_open(PLC_COMM_PLC_TYPE_COMPACTLOGIX, "10.1.2.3", PLC_COMM_CONFIG_NULL_ID, 5000);
@@ -70,20 +74,22 @@ int main(void)
         config_id = plc_comm_request_config_init(conn_id, NULL, 0);
         if(config_id < 0) break;
 
-        /* set up config for the output translated data buffer.  Pass a pointer and a size IN BYTES. */
-        rc = plc_comm_config_set_attr_buf(config_id, PLC_COMM_ATTR_REQUEST_TRANSLATED_DATA_BUF, &tag_elements[0], (int32_t)(uint32_t)sizeof(tag_elements));
+        /* set up config for the input raw data buffer.  Pass a pointer and a size IN BYTES. */
+        rc = plc_comm_config_set_attr_buf(config_id, PLC_COMM_ATTR_RESULT_RAW_DATA_BUF, &raw_elements[0], (int32_t)(uint32_t)sizeof(raw_elements));
         if(rc != PLC_COMM_STATUS_OK) break;
 
-        /* Pass the config so that the request knows to use the tag_element array directly. */
-        result_batch_id = plc_comm_conn_do_request(conn_id, "MyDINTTag", NUM_ELEMENTS, PLC_COMM_REQUEST_TYPE_READ, config_id, 5000);
+        /* now the library will use the space we provided for the raw data from the PLC */
+
+        /* Pass the config so that the request knows to use the raw_element array directly. */
+        result_batch_id = plc_comm_conn_do_request(conn_id, "MyDINTTag", NUM_ELEMENTS, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[0], (int32_t)(uint32_t)sizeof(tag_elements), config_id, 5000);
         if(result_batch_id < 0) break;
 
         rc = plc_comm_result_batch_get_status(result_batch_id);
         if(rc != PLC_COMM_STATUS_OK) break;
 
         /* we can access the tag_elements array directly.   The mapping set up in the result config*/
-        for(int i=0; i < num_elements; i++) {
-            printf("data[%d] = %d (%08x)\n", i, tag_elements[i], tag_elements[i]);
+        for(int i=0; i < NUM_ELEMENTS; i++) {
+            printf("data[%d] = %"PRId32" (%08"PRIx32")\n", i, tag_elements[i], tag_elements[i]);
         }
     } while(0);
 
