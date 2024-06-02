@@ -232,6 +232,9 @@ LIB_EXTERN int32_t plc_comm_conn_dispose(plc_comm_id_t conn_id, int32_t timeout_
 
 /* request definitions */
 
+typedef enum {
+    PLC_COMM_ATTR_REQUEST_TRANSLATED_DATA_BUF = ((1 << PLC_COMM_ATTR_ID_SHIFT) | PLC_COMM_ATTR_TYPE_BUF | PLC_COMM_ATTR_ACCESS_READ | PLC_COMM_ATTR_ACCESS_WRITE),
+} plc_comm_request_attr_t;
 
 LIB_EXTERN plc_comm_id_t plc_comm_request_batch_init(plc_comm_id_t conn_id, int32_t num_requests, plc_comm_id_t config_id);
 LIB_EXTERN int32_t plc_comm_request_batch_get_status(plc_comm_id_t request_batch_id);

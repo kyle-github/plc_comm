@@ -71,7 +71,7 @@ int main(void)
         if(config_id < 0) break;
 
         /* set up config for the output translated data buffer.  Pass a pointer and a size IN BYTES. */
-        rc = plc_comm_config_set_attr_buf(config_id, PLC_COMM_ATTR_RESULT_TRANSLATED_DATA_BUF, &tag_elements[0], (int32_t)(uint32_t)sizeof(tag_elements));
+        rc = plc_comm_config_set_attr_buf(config_id, PLC_COMM_ATTR_REQUEST_TRANSLATED_DATA_BUF, &tag_elements[0], (int32_t)(uint32_t)sizeof(tag_elements));
         if(rc != PLC_COMM_STATUS_OK) break;
 
         /* Pass the config so that the request knows to use the tag_element array directly. */
@@ -81,6 +81,7 @@ int main(void)
         rc = plc_comm_result_batch_get_status(result_batch_id);
         if(rc != PLC_COMM_STATUS_OK) break;
 
+        /* we can access the tag_elements array directly.   The mapping set up in the result config*/
         for(int i=0; i < num_elements; i++) {
             printf("data[%d] = %d (%08x)\n", i, tag_elements[i], tag_elements[i]);
         }
