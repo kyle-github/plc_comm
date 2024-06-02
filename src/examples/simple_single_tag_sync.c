@@ -54,17 +54,17 @@
  */
 int main(void)
 {
-    plc_comm_id_t conn_id = PLC_COMM_CONN_NULL_ID;
+    plc_comm_id_t conn_id = PLC_COMM_CONFIG_NULL_ID;
     plc_comm_id_t result_batch_id = PLC_COMM_RESULT_BATCH_NULL_ID;
     int32_t rc = PLC_COMM_STATUS_OK;
     int32_t *tag_elements = NULL;
     int32_t num_elements = 0;
 
     do {
-        conn_id = plc_comm_conn_open(PLC_COMM_PLC_TYPE_COMPACTLOGIX, "10.1.2.3", PLC_COMM_CONN_NULL_ID, 5000);
+        conn_id = plc_comm_conn_open(PLC_COMM_PLC_TYPE_COMPACTLOGIX, "10.1.2.3", PLC_COMM_CONFIG_NULL_ID, 5000);
         if(conn_id < 0) break;
 
-        result_batch_id = plc_comm_conn_do_request(conn_id, "MyDINTTag", 10, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID, 5000);
+        result_batch_id = plc_comm_conn_do_request(conn_id, "MyDINTTag", 10, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID, 5000);
         if(result_batch_id < 0) break;
 
         rc = plc_comm_result_batch_get_status(result_batch_id);
@@ -82,7 +82,7 @@ int main(void)
         printf("Connection opening failed with status %"PRId32"!\n", (int32_t)conn_id);
         rc = conn_id;
     } else {
-        if(conn_id != PLC_COMM_CONN_NULL_ID) {
+        if(conn_id != PLC_COMM_CONFIG_NULL_ID) {
             plc_comm_conn_dispose(conn_id, 5000);
         }
     }

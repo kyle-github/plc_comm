@@ -55,7 +55,7 @@
  */
 int main(void)
 {
-    plc_comm_id_t conn_id = PLC_COMM_CONN_NULL_ID;
+    plc_comm_id_t conn_id = PLC_COMM_CONFIG_NULL_ID;
     plc_comm_id_t request_batch_id = PLC_COMM_REQUEST_BATCH_NULL_ID;
     plc_comm_id_t result_batch_id = PLC_COMM_RESULT_BATCH_NULL_ID;
     int32_t rc = PLC_COMM_STATUS_OK;
@@ -69,42 +69,42 @@ int main(void)
         if(conn_id < 0) break;
 
         /* build a batch of requests. */
-        request_batch_id = plc_comm_request_batch_init(conn_id, 10, PLC_COMM_CONN_NULL_ID);
+        request_batch_id = plc_comm_request_batch_init(conn_id, 10, PLC_COMM_CONFIG_NULL_ID);
         if(request_batch_id < 0) break;
     
         /* fill in the requests */
-        rc = plc_comm_request_init(request_batch_id, 0, "MyDINTTag[0]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 0, "MyDINTTag[0]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 1, "MyDINTTag[1]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 1, "MyDINTTag[1]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 2, "MyDINTTag[2]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 2, "MyDINTTag[2]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 3, "MyDINTTag[3]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 3, "MyDINTTag[3]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 4, "MyDINTTag[4]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 4, "MyDINTTag[4]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 5, "MyDINTTag[5]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 5, "MyDINTTag[5]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 6, "MyDINTTag[6]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 6, "MyDINTTag[6]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 7, "MyDINTTag[7]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 7, "MyDINTTag[7]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 8, "MyDINTTag[8]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 8, "MyDINTTag[8]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        rc = plc_comm_request_init(request_batch_id, 9, "MyDINTTag[9]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID);
+        rc = plc_comm_request_init(request_batch_id, 9, "MyDINTTag[9]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONFIG_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
         /* a timeout of zero tell the library to queue up the batch of requests and then return. */
-        result_batch_id = plc_comm_conn_do_request_batch(conn_id, request_batch_id, PLC_COMM_CONN_NULL_ID, 0);
+        result_batch_id = plc_comm_conn_do_request_batch(conn_id, request_batch_id, PLC_COMM_CONFIG_NULL_ID, 0);
         if(result_batch_id < 0) break;
 
         /*
@@ -147,7 +147,7 @@ int main(void)
         printf("Connection opening failed with status %"PRId32"!\n", (int32_t)conn_id);
         rc = conn_id;
     } else {
-        if(conn_id != PLC_COMM_CONN_NULL_ID) {
+        if(conn_id != PLC_COMM_CONFIG_NULL_ID) {
             plc_comm_conn_dispose(conn_id, 5000);
         }
     }
