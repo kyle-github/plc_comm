@@ -169,8 +169,8 @@ typedef enum {
     PLC_COMM_REQUEST_TYPE_WRITE = 4,
 } plc_comm_request_op_t;
 
-LIB_EXTERN plc_comm_conn_open(plc_comm_plc_type_t plc_type, const char *address, plc_comm_id_t config, int32_t timeout_ms);
-LIB_EXTERN plc_comm_conn_do_request(plc_comm_id_t conn_id, const char *tag_name, int32_t num_elements, plc_comm_request_op_t op, plc_comm_id_t config, int32_t timeout_ms);
+LIB_EXTERN plc_comm_id_t plc_comm_conn_open(plc_comm_plc_type_t plc_type, const char *address, plc_comm_id_t config, int32_t timeout_ms);
+LIB_EXTERN plc_comm_id_t plc_comm_conn_do_request(plc_comm_id_t conn_id, const char *tag_name, int32_t num_elements, plc_comm_request_op_t op, plc_comm_id_t config, int32_t timeout_ms);
 LIB_EXTERN int32_t plc_comm_conn_dispose(plc_comm_id_t conn_id);
 
 
