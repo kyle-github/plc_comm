@@ -130,35 +130,89 @@ typedef enum {
 
 } plc_comm_id_type_t;
 
+typedef enum {
+    PLC_COMM_CONN_NULL_ID = PLC_COMM_ID_CONN_TYPE,
+    PLC_COMM_RESULT_BATCH_NULL_ID = PLC_COMM_ID_RESULT_BATCH_TYPE,
+    PLC_COMM_CONFIG_NULL_ID = PLC_COMM_ID_CONFIG_TYPE,
+    PLC_COMM_REQUEST_BATCH_NULL_ID = PLC_COMM_ID_REQUEST_BATCH_TYPE,
+
+} plc_comm_null_id_t;
+
 
 /* connection definitions */
-
-LIB_EXTERN int32_t PLC_COMM_CONN_NULL_ID = PLC_COMM_ID_CONN_TYPE;
 
 /* supported types of PLCs */
 typedef enum {
     PLC_COMM_PLC_TYPE_NONE = 0, /* catch uninitialized PLC data */
 
     PLC_COMM_PLC_TYPE_CONTROLLOGIX_1756_L5x = 10,
-    PLC_COMM_PLC_TYPE_CONTROLLOGIX_1756_L6x,
-    PLC_COMM_PLC_TYPE_CONTROLLOGIX_1756_L7x,
-    PLC_COMM_PLC_TYPE_CONTROLLOGIX_1756_L8x,
+    PLC_COMM_PLC_TYPE_CONTROLLOGIX_1756_L6x = 11,
+    PLC_COMM_PLC_TYPE_CONTROLLOGIX_1756_L7x = 12,
+    PLC_COMM_PLC_TYPE_CONTROLLOGIX_1756_L8x = 13,
+    PLC_COMM_PLC_TYPE_CONTROLLOGIX_UNUSED_14 = 14,
+    PLC_COMM_PLC_TYPE_CONTROLLOGIX_UNUSED_15 = 15,
+    PLC_COMM_PLC_TYPE_CONTROLLOGIX_UNUSED_16 = 16,
+    PLC_COMM_PLC_TYPE_CONTROLLOGIX_UNUSED_17 = 17,
+    PLC_COMM_PLC_TYPE_CONTROLLOGIX_UNUSED_18 = 18,
+    PLC_COMM_PLC_TYPE_CONTROLLOGIX_UNUSED_19 = 19,
+    PLC_COMM_PLC_TYPE_CONTROLLOGIX_UNUSED_20 = 20,
+    PLC_COMM_PLC_TYPE_CONTROLLOGIX_UNUSED_21 = 21,
+    PLC_COMM_PLC_TYPE_CONTROLLOGIX_UNUSED_22 = 22,
 
     PLC_COMM_PLC_TYPE_COMPACTLOGIX = 150,
+    PLC_COMM_PLC_TYPE_COMPACTLOGIX_UNUSED_151 = 151,
+    PLC_COMM_PLC_TYPE_COMPACTLOGIX_UNUSED_152 = 152,
+    PLC_COMM_PLC_TYPE_COMPACTLOGIX_UNUSED_153 = 153,
+    PLC_COMM_PLC_TYPE_COMPACTLOGIX_UNUSED_154 = 154,
+    PLC_COMM_PLC_TYPE_COMPACTLOGIX_UNUSED_155 = 155,
+    PLC_COMM_PLC_TYPE_COMPACTLOGIX_UNUSED_156 = 156,
+    PLC_COMM_PLC_TYPE_COMPACTLOGIX_UNUSED_157 = 157,
+    PLC_COMM_PLC_TYPE_COMPACTLOGIX_UNUSED_158 = 158,
+    PLC_COMM_PLC_TYPE_COMPACTLOGIX_UNUSED_159 = 159,
 
     PLC_COMM_PLC_TYPE_PLC5_CIP_DF1 = 200,
     PLC_COMM_PLC_TYPE_PLC5_BRIDGED_DHPLUS_DF1 = 201,
     PLC_COMM_PLC_TYPE_SLC500_CIP_DF1 = 202,
     PLC_COMM_PLC_TYPE_MICROLOGIX_CIP_DF1 = 203,
     PLC_COMM_PLC_TYPE_CONTROLLOGIX_CIP_DF1 = 204,
+    PLC_COMM_PLC_TYPE_DF1_UNUSED_205 = 205,
+    PLC_COMM_PLC_TYPE_DF1_UNUSED_206 = 206,
+    PLC_COMM_PLC_TYPE_DF1_UNUSED_207 = 207,
+    PLC_COMM_PLC_TYPE_DF1_UNUSED_208 = 208,
+    PLC_COMM_PLC_TYPE_DF1_UNUSED_209 = 209,
 
     PLC_COMM_PLC_TYPE_MICRO8x0 = 300,
+    PLC_COMM_PLC_TYPE_MICRO8x0_UNUSED_301 = 301,
+    PLC_COMM_PLC_TYPE_MICRO8x0_UNUSED_302 = 302,
+    PLC_COMM_PLC_TYPE_MICRO8x0_UNUSED_303 = 303,
+    PLC_COMM_PLC_TYPE_MICRO8x0_UNUSED_304 = 304,
+    PLC_COMM_PLC_TYPE_MICRO8x0_UNUSED_305 = 305,
+    PLC_COMM_PLC_TYPE_MICRO8x0_UNUSED_306 = 306,
+    PLC_COMM_PLC_TYPE_MICRO8x0_UNUSED_307 = 307,
+    PLC_COMM_PLC_TYPE_MICRO8x0_UNUSED_308 = 308,
+    PLC_COMM_PLC_TYPE_MICRO8x0_UNUSED_309 = 309,
 
     PLC_COMM_PLC_TYPE_OMRON_NJ = 400,
     PLC_COMM_PLC_TYPE_OMRON_NX = 401,
     PLC_COMM_PLC_TYPE_OMRON_CJ = 402,
+    PLC_COMM_PLC_TYPE_OMRON_UNUSED_403 = 403,
+    PLC_COMM_PLC_TYPE_OMRON_UNUSED_404 = 404,
+    PLC_COMM_PLC_TYPE_OMRON_UNUSED_405 = 405,
+    PLC_COMM_PLC_TYPE_OMRON_UNUSED_406 = 406,
+    PLC_COMM_PLC_TYPE_OMRON_UNUSED_407 = 407,
+    PLC_COMM_PLC_TYPE_OMRON_UNUSED_408 = 408,
+    PLC_COMM_PLC_TYPE_OMRON_UNUSED_409 = 409,
 
-    PLC_COMM_PLC_TYPE_MODBUS_GENERIC = 500
+    PLC_COMM_PLC_TYPE_MODBUS_GENERIC = 500,
+    PLC_COMM_PLC_TYPE_MODBUS_UNUSED_501 = 501,
+    PLC_COMM_PLC_TYPE_MODBUS_UNUSED_502 = 502,
+    PLC_COMM_PLC_TYPE_MODBUS_UNUSED_503 = 503,
+    PLC_COMM_PLC_TYPE_MODBUS_UNUSED_504 = 504,
+    PLC_COMM_PLC_TYPE_MODBUS_UNUSED_505 = 505,
+    PLC_COMM_PLC_TYPE_MODBUS_UNUSED_506 = 506,
+    PLC_COMM_PLC_TYPE_MODBUS_UNUSED_507 = 507,
+    PLC_COMM_PLC_TYPE_MODBUS_UNUSED_508 = 508,
+    PLC_COMM_PLC_TYPE_MODBUS_UNUSED_509 = 509,
 } plc_comm_plc_type_t;
 
 
@@ -172,25 +226,26 @@ typedef enum {
 
 LIB_EXTERN plc_comm_id_t plc_comm_conn_open(plc_comm_plc_type_t plc_type, const char *address, plc_comm_id_t config, int32_t timeout_ms);
 LIB_EXTERN plc_comm_id_t plc_comm_conn_do_request(plc_comm_id_t conn_id, const char *tag_name, int32_t num_elements, plc_comm_request_op_t op, plc_comm_id_t config, int32_t timeout_ms);
+LIB_EXTERN plc_comm_id_t plc_comm_conn_do_request_batch(plc_comm_id_t conn_id, plc_comm_id_t request_batch_id, plc_comm_id_t config_id, int32_t timeout_ms);
 LIB_EXTERN int32_t plc_comm_conn_dispose(plc_comm_id_t conn_id, int32_t timeout_ms);
 
 
 /* request definitions */
 
-LIB_EXTERN int32_t PLC_COMM_REQUEST_BATCH_NULL_ID = PLC_COMM_ID_REQUEST_BATCH_TYPE;
+
+LIB_EXTERN plc_comm_id_t plc_comm_request_batch_init(plc_comm_id_t conn_id, int32_t num_requests, plc_comm_id_t config_id);
+LIB_EXTERN int32_t plc_comm_request_batch_get_status(plc_comm_id_t request_batch_id);
+LIB_EXTERN int32_t plc_comm_request_init(plc_comm_id_t request_batch_id, int32_t request_indx, const char *tag_name, int32_t num_elements, plc_comm_request_op_t op, plc_comm_id_t config_id);
 
 
 /* result and result batch definitions */
-
-LIB_EXTERN int32_t PLC_COMM_RESULT_BATCH_NULL_ID = PLC_COMM_ID_RESULT_BATCH_TYPE;
 
 typedef enum {
     PLC_COMM_ATTR_RESULT_BATCH_RESULT_COUNT = ((1 << PLC_COMM_ATTR_ID_SHIFT) | PLC_COMM_ATTR_TYPE_INT | PLC_COMM_ATTR_ACCESS_READ),
 } plc_comm_result_batch_attr_t;
 
-LIB_EXTERN plc_comm_id_t plc_comm_request_batch_init(plc_comm_id_t conn_id, int32_t num_requests, plc_comm_id_t config_id);
-
 LIB_EXTERN int32_t plc_comm_result_batch_get_attr_int(plc_comm_id_t result_batch_id, plc_comm_result_batch_attr_t attr, int32_t default_val);
+LIB_EXTERN int32_t plc_comm_result_batch_get_status(plc_comm_id_t result_batch_id);
 
 typedef enum {
     PLC_COMM_ATTR_RESULT_TRANSLATED_ELEMENT_COUNT = ((1 << PLC_COMM_ATTR_ID_SHIFT) | PLC_COMM_ATTR_TYPE_INT | PLC_COMM_ATTR_ACCESS_READ),

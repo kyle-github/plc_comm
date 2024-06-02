@@ -33,7 +33,8 @@
 
 #include <inttypes.h>
 #include <stdio.h>
-#include "plc_comm.h"
+
+#include <plc_comm.h>
 
 #include "utils.h"
 

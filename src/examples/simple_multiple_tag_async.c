@@ -65,7 +65,7 @@ int main(void)
     int32_t num_elements = 0;
 
     do {
-        conn_id = plc_comm_conn_open(PLC_COMM_PLC_TYPE_COMPACTLOGIX, "10.1.2.3", NULL, 5000);
+        conn_id = plc_comm_conn_open(PLC_COMM_PLC_TYPE_COMPACTLOGIX, "10.1.2.3", PLC_COMM_CONFIG_NULL_ID, 5000);
         if(conn_id < 0) break;
 
         /* build a batch of requests. */
