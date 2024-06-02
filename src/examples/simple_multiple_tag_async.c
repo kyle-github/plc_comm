@@ -32,7 +32,8 @@
  ***************************************************************************/
 
 #include <stdio.h>
-#include "plc_comm.h"
+
+#include <plc_comm.h>
 
 #include "utils.h"
 
@@ -101,8 +102,8 @@ int main(void)
         rc = plc_comm_request_init(request_batch_id, 9, "MyDINTTag[9]", 1, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID);
         if(rc != PLC_COMM_STATUS_OK) break;
         
-        /* a timeout of zero tell the library to queue up the request and then return. */
-        result_batch_id = plc_comm_conn_do_request(conn_id, "MyDINTTag", 10, PLC_COMM_REQUEST_TYPE_READ, PLC_COMM_CONN_NULL_ID, 0);
+        /* a timeout of zero tell the library to queue up the batch of requests and then return. */
+        result_batch_id = plc_comm_conn_do_request_batch(conn_id, request_batch_id, PLC_COMM_CONN_NULL_ID, 0);
         if(result_batch_id < 0) break;
 
         /*
@@ -131,7 +132,7 @@ int main(void)
         /* get the number of results */
         num_results = plc_comm_result_batch_get_attr_int(request_batch_id, PLC_COMM_ATTR_RESULT_BATCH_RESULT_COUNT, -1);
 
-        for(int result_indx=0; i < num_results; result_indx++) {
+        for(int result_indx=0; result_indx < num_results; result_indx++) {
             num_elements = plc_comm_result_get_attr_int(result_batch_id, result_indx, PLC_COMM_ATTR_RESULT_TRANSLATED_ELEMENT_COUNT, -1);
             tag_elements = (int32_t *)plc_comm_result_get_attr_ptr(result_batch_id, result_indx, PLC_COMM_ATTR_RESULT_TRANSLATED_ELEMENT_DATA, NULL);
 
@@ -146,7 +147,7 @@ int main(void)
         rc = conn_id;
     } else {
         if(conn_id != PLC_COMM_CONN_NULL_ID) {
-            plc_comm_conn_dispose(conn_id);
+            plc_comm_conn_dispose(conn_id, 5000);
         }
     }
 

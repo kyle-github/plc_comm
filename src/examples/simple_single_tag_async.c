@@ -91,8 +91,8 @@ int main(void)
         /* check the status */
         if(rc != PLC_COMM_STATUS_OK) break;
 
-        num_elements = plc_comm_result_batch_get_attr_int(result_batch_id, 0, PLC_COMM_ATTR_RESULT_BATCH_TRANSLATED_ELEMENT_COUNT, -1);
-        tag_elements = (int32_t *)plc_comm_result_batch_get_attr_ptr(result_batch_id, 0, PLC_COMM_ATTR_RESULT_BATCH_TRANSLATED_ELEMENT_DATA, NULL);
+        num_elements = plc_comm_result_get_attr_int(result_batch_id, 0, PLC_COMM_ATTR_RESULT_TRANSLATED_ELEMENT_COUNT, -1);
+        tag_elements = (int32_t *)plc_comm_result_get_attr_ptr(result_batch_id, 0, PLC_COMM_ATTR_RESULT_TRANSLATED_ELEMENT_DATA, NULL);
 
         for(int i=0; i < num_elements; i++) {
             printf("data[%d] = %d (%08x)\n", i, tag_elements[i], tag_elements[i]);
@@ -104,7 +104,7 @@ int main(void)
         rc = conn_id;
     } else {
         if(conn_id != PLC_COMM_CONN_NULL_ID) {
-            plc_comm_conn_dispose(conn_id);
+            plc_comm_conn_dispose(conn_id, 5000);
         }
     }
 

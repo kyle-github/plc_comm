@@ -35,6 +35,7 @@
  ***************************************************************************/
 
 
+#include <stdint.h>
 #include <inttypes.h>
 
 
@@ -171,7 +172,7 @@ typedef enum {
 
 LIB_EXTERN plc_comm_id_t plc_comm_conn_open(plc_comm_plc_type_t plc_type, const char *address, plc_comm_id_t config, int32_t timeout_ms);
 LIB_EXTERN plc_comm_id_t plc_comm_conn_do_request(plc_comm_id_t conn_id, const char *tag_name, int32_t num_elements, plc_comm_request_op_t op, plc_comm_id_t config, int32_t timeout_ms);
-LIB_EXTERN int32_t plc_comm_conn_dispose(plc_comm_id_t conn_id);
+LIB_EXTERN int32_t plc_comm_conn_dispose(plc_comm_id_t conn_id, int32_t timeout_ms);
 
 
 /* request definitions */
@@ -186,6 +187,8 @@ LIB_EXTERN int32_t PLC_COMM_RESULT_BATCH_NULL_ID = PLC_COMM_ID_RESULT_BATCH_TYPE
 typedef enum {
     PLC_COMM_ATTR_RESULT_BATCH_RESULT_COUNT = ((1 << PLC_COMM_ATTR_ID_SHIFT) | PLC_COMM_ATTR_TYPE_INT | PLC_COMM_ATTR_ACCESS_READ),
 } plc_comm_result_batch_attr_t;
+
+LIB_EXTERN plc_comm_id_t plc_comm_request_batch_init(plc_comm_id_t conn_id, int32_t num_requests, plc_comm_id_t config_id);
 
 LIB_EXTERN int32_t plc_comm_result_batch_get_attr_int(plc_comm_id_t result_batch_id, plc_comm_result_batch_attr_t attr, int32_t default_val);
 
