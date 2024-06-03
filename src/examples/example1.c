@@ -57,7 +57,6 @@ int main(void)
     plc_comm_id_t result_batch_id = PLC_COMM_RESULT_BATCH_NULL_ID;
     int32_t rc = PLC_COMM_STATUS_OK;
     int32_t tag_elements[NUM_ELEMENTS] = {0};
-    int32_t num_elements = 0;
 
     do {
         /*
@@ -116,7 +115,7 @@ int main(void)
          * The array tag_elements is just a normal C array.  All regular C code can be used
          * with it.
          */
-        for(int i=0; i < num_elements; i++) {
+        for(int i=0; i < NUM_ELEMENTS; i++) {
             printf("data[%d] = %"PRId32" (%08"PRIx32")\n", i, tag_elements[i], tag_elements[i]);
         }
     } while(0);
