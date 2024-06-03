@@ -60,17 +60,64 @@ int main(void)
     int32_t num_elements = 0;
 
     do {
+        /*
+         * Open a connection the PLC.  This has the most common arguments split
+         * out as parameters.   Less common arguments can be set via a config object.
+         * 
+         * The call is done synchronously.  This is indicated by the timeout value, 5000,
+         * which is the number of milliseconds to wait for the connection to complete or
+         * fail.  
+         * 
+         * The connection ID returned is just an integer handle.  A positive value is a
+         * valid handle and a negative one is an error response.
+         * 
+         * All error, warning and status return values are negative. 
+         */
         conn_id = plc_comm_conn_open(PLC_COMM_PLC_TYPE_COMPACTLOGIX, "10.1.2.3", PLC_COMM_CONFIG_NULL_ID, 5000);
         if(conn_id < 0) break;
 
+        /*
+         * This does a single request on a tag.   It returns a batch of results to make
+         * sure the API does not expand too much.  In this case, the batch has only
+         * a single result in it.
+         * 
+         * There are three levels of error reporting here.   The first is the batch ID itself.
+         * If that is negative, something went wrong with the creation of the batch.  Perhaps
+         * memory was not available or a required argument was missing.
+         * 
+         * The second level of error handling is the status of the request batch.  If the batch
+         * has multiple requests in it, one of them might have failed an other succeeded.  In
+         * that case, the batch as a whole has not been fully successful and a status of partial
+         * success will be found.
+         * 
+         * The arguments include references to the C array tag_elements where the result will
+         * be placed after the raw data is received and translated to host PC format.
+         */
         result_batch_id = plc_comm_conn_do_request(conn_id, "MyDINTTag", NUM_ELEMENTS, PLC_COMM_REQUEST_TYPE_READ, &tag_elements[0], (int32_t)(uint32_t)sizeof(tag_elements), PLC_COMM_CONFIG_NULL_ID, 5000);
         if(result_batch_id < 0) break;
 
-        rc = plc_comm_result_batch_get_status(result_batch_id);
+        /*
+         * Check the status of the request batch.  This is actually skipping the batch-level
+         * status check.
+         *
+         * We know that there is only one result so we just check that status.   This is 
+         * only a possible short-cut when we have just one result.
+         */
+        rc = plc_comm_result_get_status(result_batch_id, 0);
         if(rc != PLC_COMM_STATUS_OK) break;
 
+        /*
+         * Print out the resulting data.   Note that the data is in a local C array
+         * in the host format.
+         *
+         * The library will handle all the translation and management of the raw data
+         * from the PLC.
+         * 
+         * The array tag_elements is just a normal C array.  All regular C code can be used
+         * with it.
+         */
         for(int i=0; i < num_elements; i++) {
-            printf("data[%d] = %d (%08x)\n", i, tag_elements[i], tag_elements[i]);
+            printf("data[%d] = %"PRId32" (%08"PRIx32")\n", i, tag_elements[i], tag_elements[i]);
         }
     } while(0);
 
@@ -79,6 +126,11 @@ int main(void)
         rc = conn_id;
     } else {
         if(conn_id != PLC_COMM_CONFIG_NULL_ID) {
+            /* 
+             * The library will clean up all the managed resources including memory, sockets,
+             * threads etc. when dispose is called.  If the connection is still active, it will
+             * be closed first.   This is why there is a timeout to this operation.
+             */
             plc_comm_conn_dispose(conn_id, 5000);
         }
     }
