@@ -56,7 +56,7 @@ int main(void)
     plc_comm_id_t conn_id = PLC_COMM_CONFIG_NULL_ID;
     plc_comm_id_t result_batch_id = PLC_COMM_RESULT_BATCH_NULL_ID;
     int32_t rc = PLC_COMM_STATUS_OK;
-    int32_t *tag_elements[NUM_ELEMENTS] = {0};
+    int32_t tag_elements[NUM_ELEMENTS] = {0};
     int32_t num_elements = 0;
 
     do {
