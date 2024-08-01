@@ -46,10 +46,13 @@ typedef enum {
     VAL_ERR_NULL_PTR,
     VAL_ERR_NOT_IMPLEMENTED,
     VAL_ERR_OUT_OF_BOUNDS,
-    VAL_ERR_DIRTY_COUNT_CORRUPT,
+    VAL_ERR_NO_RESOURCES,
+    VAL_ERR_CONNECTION_ERROR,
+    VAL_ERR_PARTIAL,
 } value_status_t;
 
 typedef enum {
+    VAL_TYPE_NONE = 0,
     VAL_TYPE_BOOL,
     VAL_TYPE_U8,
     VAL_TYPE_U16,
@@ -61,41 +64,41 @@ typedef enum {
     VAL_TYPE_I64,
     VAL_TYPE_F32,
     VAL_TYPE_F64,
-    VAL_TYPE_STR, /* open this can of worms? */
     VAL_TYPE_ARRAY,
     VAL_TYPE_STRUCTURE,
 } value_type_t;
 
 typedef struct {
     value_type_t val_type;
-} *value_any;
+} *value_p;
 
 
-extern value_status_t value_open_device(const char *plc_connect_attrs, value_any *plc_tags);
-extern value_status_t value_close_device(value_any plc_tags);
+extern value_status_t value_open_device(const char *plc_connect_attrs, value_p **plc_device);
+extern value_status_t value_close_device(value_p plc_tags);
 
-extern value_status_t value_sync(value_any value);
+extern value_status_t value_sync(value_p value);
 
-extern value_status_t value_get_type(value_any var, value_type_t *val_type);
-extern value_status_t value_get_size(value_any var, uint32_t *val_size);
+extern value_status_t value_get_type(value_p var, value_type_t *val_type);
+extern value_status_t value_get_size(value_p var, uint32_t *val_size);
 
-extern value_status_t value_bool_get_value(value_any var, bool *val);
-extern value_status_t value_bool_set_value(value_any var, bool val);
+extern value_status_t value_bool_get_value(value_p var, bool *val);
+extern value_status_t value_bool_set_value(value_p var, bool val);
 
-extern value_status_t value_uint_get_value(value_any var, uint64_t *val);
-extern value_status_t value_uint_set_value(value_any var, uint64_t val);
+extern value_status_t value_uint_get_value(value_p var, uint64_t *val);
+extern value_status_t value_uint_set_value(value_p var, uint64_t val);
 
-extern value_status_t value_int_get_value(value_any var, int64_t *val);
-extern value_status_t value_int_set_value(value_any var, int64_t val);
+extern value_status_t value_int_get_value(value_p var, int64_t *val);
+extern value_status_t value_int_set_value(value_p var, int64_t val);
 
-extern value_status_t value_float_get_value(value_any var, double *val);
-extern value_status_t value_float_set_value(value_any var, double val);
+extern value_status_t value_float_get_value(value_p var, double *val);
+extern value_status_t value_float_set_value(value_p var, double val);
 
-extern value_status_t value_array_get_element_type(value_any array, value_type_t *element_type);
-extern value_status_t value_array_get_element(value_any array, uint32_t index, value_any *element_val);
+extern value_status_t value_array_get_num_elements(value_p array, uint32_t *num_elements);
+extern value_status_t value_array_get_element_type(value_p array, value_type_t *element_type);
+extern value_status_t value_array_get_element(value_p array, uint32_t index, value_p *element_val);
 
-extern value_status_t value_structure_get_name(value_any structure, const char **struct_name);
-extern value_status_t value_structure_get_num_fields(value_any structure, uint32_t *num_fields);
-extern value_status_t value_structure_get_field_name(value_any structure, uint32_t field_index, const char **field_name);
-extern value_status_t value_structure_get_field_by_index(value_any structure, uint32_t field_index, value_any *field_val);
-extern value_status_t value_structure_get_field_by_name(value_any structure, const char *field_name, value_any *field_val);
+extern value_status_t value_structure_get_name(value_p structure, const char **struct_name);
+extern value_status_t value_structure_get_num_fields(value_p structure, uint32_t *num_fields);
+extern value_status_t value_structure_get_field_name(value_p structure, uint32_t field_index, const char **field_name);
+extern value_status_t value_structure_get_field_by_index(value_p structure, uint32_t field_index, value_p *field_val);
+extern value_status_t value_structure_get_field_by_name(value_p structure, const char *field_name, value_p *field_val);

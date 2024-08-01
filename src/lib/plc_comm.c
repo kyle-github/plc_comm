@@ -39,7 +39,7 @@
 
 typedef struct {
     value_type_t val_type;
-    value_any parent;
+    value_p parent;
 
     uint8_t *buf_data;
     uint32_t buf_data_size;
@@ -64,24 +64,24 @@ typedef struct value_bool {
 typedef struct value_uint {
     value_base;
 
-    int32_t (*encoder)(value_any uint_val, uint64_t val);
-    int32_t (*decoder)(value_any uint_val, uint64_t *val);
+    int32_t (*encoder)(struct value_uint *uint_val, uint64_t val);
+    int32_t (*decoder)(struct value_uint *uint_val, uint64_t *val);
 } value_uint;
 
 
 typedef struct value_int {
     value_base;
 
-    int32_t (*encoder)(value_any int_val, int64_t val);
-    int32_t (*decoder)(value_any int_val, int64_t *val);
+    int32_t (*encoder)(struct value_int *int_val, int64_t val);
+    int32_t (*decoder)(struct value_int *int_val, int64_t *val);
 } value_int;
 
 
 typedef struct value_float {
     value_base;
 
-    int32_t (*encoder)(value_any uint_val, double val);
-    int32_t (*decoder)(value_any uint_val, double *val);
+    int32_t (*encoder)(struct value_float *float_val, double val);
+    int32_t (*decoder)(struct value_float *float_val, double *val);
 } value_float;
 
 
@@ -97,7 +97,7 @@ typedef struct {
 
     uint32_t num_elements;
     value_type_t element_type;
-    value_any *elements; /* note: pointer-to-pointer */
+    value_p *elements; /* note: pointer-to-pointer */
 } value_array;
 
 
@@ -108,7 +108,7 @@ typedef struct {
     uint32_t num_fields;
     struct {
         const char *field_name;
-        value_any field_val;
+        value_p field_val;
     } *fields;
 } value_structure;
 
@@ -126,17 +126,42 @@ typedef struct device {
 static value_status_t mark_dirty(value_base *val);
 static value_status_t clear_dirty(value_base *val);
 static value_status_t find_first_dirty(value_base *val, value_base *value_stack[], uint32_t stack_index);
+static value_status_t get_tags(device *plc);
 
 
+value_status_t value_open_device(const char *plc_connect_attrs, value_p **device_val)
+{
+    value_status_t rc = VAL_OK;
+    device *plc = NULL;
 
-value_status_t value_open_device(const char *plc_connect_attrs, value_any *plc_tags);
-value_status_t value_close_device(value_any plc_tags);
+    plc = calloc(1, sizeof(*plc));
+    if(plc) {
+        plc->device_raw_tag = plc_tag_create("protocol=ab-eip&gateway=10.206.1.39&path=1,0&plc=ControlLogix&name=@raw", 5000);
+        if(plc->device_raw_tag > 0) {
+            rc = get_tags(plc);
+            if(rc != VAL_OK) {
+                info("WARN: Error getting tag information from PLC!");
+                rc = VAL_ERR_CONNECTION_ERROR;
+            }
+        } else {
+            info("WARN: Unable to open PLC device handle! Error %s.", plc_tag_decode_error(plc->device_raw_tag));
+            rc = VAL_ERR_CONNECTION_ERROR;
+        }
+    } else {
+        info("WARN: Unable to allocate the device structure memory!");
+        rc = VAL_ERR_NO_RESOURCES;
+    }
+
+    return rc;
+}
+
+value_status_t value_close_device(value_p plc_tags)
 
 
 #define VALUE_STACK_DEPTH (50)
 
 
-value_status_t value_sync(value_any value)
+value_status_t value_sync(value_p value)
 {
     value_status_t rc = VAL_OK;
 
@@ -146,20 +171,23 @@ value_status_t value_sync(value_any value)
         value_base *parent = (value_base *)val_base->parent;
 
         while(parent && parent->val_type != VAL_TYPE_DEVICE) {
-            parent = parent->parent;
+            parent = (value_base *)(parent->parent);
         }
 
         if(parent) {
             /* now we traverse the tree looking for the first dirty marker */
             value_base *value_stack[VALUE_STACK_DEPTH] = {0};
 
+            rc = find_first_dirty(parent, value_stack, 0);
         }
-
-        /* look for dirty */
+    } else {
+        rc = VAL_ERR_NULL_PTR;
     }
+
+    return rc;
 }
 
-value_status_t value_get_type(value_any val, value_type_t *val_type)
+value_status_t value_get_type(value_p val, value_type_t *val_type)
 {
     value_status_t rc = VAL_OK;
 
@@ -174,7 +202,7 @@ value_status_t value_get_type(value_any val, value_type_t *val_type)
 }
 
 
-value_status_t value_get_size(value_any val_arg, uint32_t *val_size)
+value_status_t value_get_size(value_p val_arg, uint32_t *val_size)
 {
     value_status_t rc = VAL_OK;
 
@@ -223,7 +251,7 @@ value_status_t value_get_size(value_any val_arg, uint32_t *val_size)
 
 
 
-value_status_t value_bool_get_value(value_any val_arg, bool *result)
+value_status_t value_bool_get_value(value_p val_arg, bool *result)
 {
     value_status_t rc = VAL_OK;
 
@@ -233,7 +261,7 @@ value_status_t value_bool_get_value(value_any val_arg, bool *result)
 }
 
 
-value_status_t value_bool_set_value(value_any val_arg, bool new_value)
+value_status_t value_bool_set_value(value_p val_arg, bool new_value)
 {
     value_status_t rc = VAL_OK;
 
@@ -245,7 +273,7 @@ value_status_t value_bool_set_value(value_any val_arg, bool new_value)
 
 
 
-value_status_t value_uint_get_value(value_any val_arg, uint64_t *result)
+value_status_t value_uint_get_value(value_p val_arg, uint64_t *result)
 {
     value_status_t rc = VAL_OK;
 
@@ -255,7 +283,7 @@ value_status_t value_uint_get_value(value_any val_arg, uint64_t *result)
 }
 
 
-value_status_t value_uint_set_value(value_any val_arg, uint64_t new_val)
+value_status_t value_uint_set_value(value_p val_arg, uint64_t new_val)
 {
     value_status_t rc = VAL_OK;
 
@@ -265,7 +293,7 @@ value_status_t value_uint_set_value(value_any val_arg, uint64_t new_val)
 }
 
 
-value_status_t value_int_get_value(value_any val_arg, int64_t *result)
+value_status_t value_int_get_value(value_p val_arg, int64_t *result)
 {
     value_status_t rc = VAL_OK;
 
@@ -275,7 +303,7 @@ value_status_t value_int_get_value(value_any val_arg, int64_t *result)
 }
 
 
-value_status_t value_int_set_value(value_any val_arg, int64_t new_val)
+value_status_t value_int_set_value(value_p val_arg, int64_t new_val)
 {
     value_status_t rc = VAL_OK;
 
@@ -285,17 +313,17 @@ value_status_t value_int_set_value(value_any val_arg, int64_t new_val)
 }
 
 
-value_status_t value_float_get_value(value_any val_arg, double *result)
+value_status_t value_float_get_value(value_p val_arg, double *result)
 {
     value_status_t rc = VAL_OK;
 
-    DECODE(value_int, val_arg, result);
+    DECODE(value_float, val_arg, result);
 
     return rc;
 }
 
 
-value_status_t value_float_set_value(value_any val_arg, double new_val)
+value_status_t value_float_set_value(value_p val_arg, double new_val)
 {
     value_status_t rc = VAL_OK;
 
@@ -305,7 +333,28 @@ value_status_t value_float_set_value(value_any val_arg, double new_val)
 }
 
 
-value_status_t value_array_get_element_type(value_any array_arg, value_type_t *element_type)
+value_status_t value_array_get_num_elements(value_p array_arg, uint32_t *num_elements)
+{
+    value_status_t rc = VAL_OK;
+
+    if(array_arg && num_elements) {
+        if(array_arg->val_type == VAL_TYPE_ARRAY) {
+            value_array *val = (value_array *)array_arg;
+
+            *num_elements = val->num_elements;
+        } else {
+            rc = VAL_ERR_TYPE_MISMATCH;
+        }
+    } else {
+        rc = VAL_ERR_NULL_PTR;
+    }
+
+    return rc;
+}
+
+
+
+value_status_t value_array_get_element_type(value_p array_arg, value_type_t *element_type)
 {
     value_status_t rc = VAL_OK;
 
@@ -320,10 +369,12 @@ value_status_t value_array_get_element_type(value_any array_arg, value_type_t *e
     } else {
         rc = VAL_ERR_NULL_PTR;
     }
+
+    return rc;
 }
 
 
-value_status_t value_array_get_element(value_any array_arg, uint32_t index, value_any *element_val)
+value_status_t value_array_get_element(value_p array_arg, uint32_t index, value_p *element_val)
 {
     value_status_t rc = VAL_OK;
 
@@ -348,7 +399,7 @@ value_status_t value_array_get_element(value_any array_arg, uint32_t index, valu
 
 
 
-value_status_t value_structure_get_name(value_any structure_arg, const char **struct_name)
+value_status_t value_structure_get_name(value_p structure_arg, const char **struct_name)
 {
     value_status_t rc = VAL_OK;
 
@@ -369,7 +420,7 @@ value_status_t value_structure_get_name(value_any structure_arg, const char **st
 }
 
 
-value_status_t value_structure_get_num_fields(value_any structure_arg, uint32_t *num_fields)
+value_status_t value_structure_get_num_fields(value_p structure_arg, uint32_t *num_fields)
 {
     value_status_t rc = VAL_OK;
 
@@ -390,7 +441,7 @@ value_status_t value_structure_get_num_fields(value_any structure_arg, uint32_t 
 }
 
 
-value_status_t value_structure_get_field_name(value_any structure_arg, uint32_t field_index, const char **field_name)
+value_status_t value_structure_get_field_name(value_p structure_arg, uint32_t field_index, const char **field_name)
 {
     value_status_t rc = VAL_OK;
 
@@ -416,7 +467,7 @@ value_status_t value_structure_get_field_name(value_any structure_arg, uint32_t 
 
 
 
-value_status_t value_structure_get_field_by_index(value_any structure_arg, uint32_t field_index, value_any *field_val)
+value_status_t value_structure_get_field_by_index(value_p structure_arg, uint32_t field_index, value_p *field_val)
 {
     value_status_t rc = VAL_OK;
 
@@ -442,7 +493,7 @@ value_status_t value_structure_get_field_by_index(value_any structure_arg, uint3
 
 
 
-value_status_t value_structure_get_field_by_name(value_any structure_arg, const char *field_name, value_any *field_val)
+value_status_t value_structure_get_field_by_name(value_p structure_arg, const char *field_name, value_p *field_val)
 {
     value_status_t rc = VAL_OK;
 
@@ -494,6 +545,8 @@ value_status_t mark_dirty(value_base *val)
     } else {
         rc = VAL_ERR_NULL_PTR;
     }
+
+    return rc;
 }
 
 
@@ -507,18 +560,20 @@ value_status_t clear_dirty(value_base *val)
         /* chain downward */
         if(val->val_type == VAL_TYPE_ARRAY) {
             for(uint32_t i = 0; i < ((value_array *)val)->num_elements && rc == VAL_OK; i++) {
-                rc = clear_dirty(((value_array *)val)->elements[i]);
+                rc = clear_dirty((value_base *)((value_array *)val)->elements[i]);
             }
         }
 
         if(val->val_type == VAL_TYPE_STRUCTURE) {
             for(uint32_t i = 0; i < ((value_structure *)val)->num_fields && rc == VAL_OK; i++) {
-                rc = clear_dirty(((value_structure *)val)->fields[i].field_val);
+                rc = clear_dirty((value_base *)((value_structure *)val)->fields[i].field_val);
             }
         }
     } else {
         rc = VAL_ERR_NULL_PTR;
     }
+
+    return rc;
 }
 
 
@@ -559,6 +614,128 @@ value_status_t find_first_dirty(value_base *val, value_base *value_stack[], uint
         /* returning without finding anything, clear the entry */
         value_stack[stack_index] = NULL;
     }
+
+    return rc;
+}
+
+
+
+value_status_t build_minimal_tag_data_request(device *plc, uint32_t last_id)
+{
+    value_status_t rc = VAL_OK;
+    int32_t tag_rc = PLCTAG_STATUS_OK;
+    uint8_t request[] = {0x55,0x03,0x20,0x6b,0x25,0x00,0x00,0x00,0x03,0x00,0x02,0x00,0x07,0x00,0x01,0x00};
+
+    request[6] = last_id & 0xFF;
+    request[7] = (last_id >> 8) & 0xFF;
+
+    tag_rc = plc_tag_set_size(plc->device_raw_tag, (int)sizeof(request));
+    if(tag_rc == PLCTAG_STATUS_OK) {
+        for(size_t i=0; i < sizeof(request); i++) {
+            plc_tag_set_uint8(plc->device_raw_tag, i, request[i]);
+        }
+    } else {
+        info("WARN: Unable to set tag size!");
+        rc = VAL_ERR_NO_RESOURCES;
+    }
+
+    return rc;
+}
+
+
+
+value_status_t parse_minimal_tag_data(device *plc, uint32_t *last_id)
+{
+    value_status_t rc = VAL_OK;
+    int offset = 0;
+
+    if(plc_tag_get_size(plc->device_raw_tag) >= 4) {
+        uint8_t cip_cmd = plc_tag_get_uint8(plc->device_raw_tag, 0);
+        uint8_t cip_unused1 = plc_tag_get_uint8(plc->device_raw_tag, 1);
+        uint8_t cip_status = plc_tag_get_uint8(plc->device_raw_tag, 2);
+        uint8_t cip_extended_status_size = plc_tag_get_uint8(plc->device_raw_tag, 3);
+
+        offset = 4;
+
+        if(cip_status == 0 || cip_status == 0x06) {
+            while(rc = VAL_OK && offset < plc_tag_get_size(plc->device_raw_tag)) {
+                uint32_t tag_instance_id = plc_tag_get_uint32(plc->device_raw_tag, offset);
+                uint16_t tag_type_word = plc_tag_get_uint16(plc->device_raw_tag, offset + 4);
+                uint16_t tag_size = plc_tag_get_uint16(plc->device_raw_tag, offset + 6);
+                uint16_t tag_name_size = plc_tag_get_uint16(plc->device_raw_tag, offset + 8);
+                offset += 10;
+
+                *last_id = tag_instance_id + 1;
+
+                /* get the tag name */
+                char *tag_name = calloc(1, tag_name_size + 1);
+
+                for(uint16_t i=0; i < tag_name_size; i++) {
+                    tag_name[i] = plc_tag_get_uint8(plc->device_raw_tag, offset + i);
+                }
+
+                offset += tag_name_size;
+
+                /* allocate a new top level value */
+                uint16_t element_type = tag_type_word & 0xfff;
+                bool is_system = (tag_type_word & 0x0100) ? true : false;
+                uint8_t num_dims = (tag_type_word >> 13) & 0x03;
+                bool is_structure = (tag_type_word & 0x8000) ? true : false;
+
+                printf("Tag %s (%04x) element type %04x, is system %s, is array %s, number of dimensions %d, is structure %s, size in bytes %u.\n",
+                        tag_name,
+                        tag_instance_id,
+                        element_type,
+                        is_system ? "true" : "false",
+                        num_dims > 0 ? "true" : "false",
+                        num_dims, is_structure ? "true" : "false",
+                        tag_size);
+            }
+
+        } else {
+            info("WARN: CIP error %02x", cip_status);
+            rc = VAL_ERR_CONNECTION_ERROR;
+        }
+    } else {
+        rc = VAL_ERR_CONNECTION_ERROR;
+    }
+
+    return rc;
+}
+
+value_status_t get_minimal_symbol_instance_data(device *plc)
+{
+    value_status_t rc = VAL_OK;
+    uint32_t last_tag_instance_id = 0;
+    value_status_t last_rc;
+    int32_t tag_rc = PLCTAG_STATUS_OK;
+
+    do {
+        rc = build_minimal_tag_data_request(plc, last_tag_instance_id);
+        if(rc == VAL_OK || rc == VAL_ERR_PARTIAL) {
+            last_rc = rc;
+
+            tag_rc = plc_tag_write(plc->device_raw_tag, 5000);
+            if(tag_rc == PLCTAG_STATUS_OK) {
+                rc = parse_minimal_tag_data(plc, &last_tag_instance_id);
+                if(rc == VAL_OK) {
+                    if(last_rc == VAL_ERR_PARTIAL)
+                }
+            } else {
+                rc = VAL_ERR_CONNECTION_ERROR;
+            }
+        }
+    } while(rc = VAL_ERR_PARTIAL);
+
+    return rc;
+}
+
+
+value_status_t get_tags(device *plc)
+{
+    value_status_t rc = VAL_OK;
+
+    rc = get_minimal_symbol_instance_data(plc);
 
     return rc;
 }
